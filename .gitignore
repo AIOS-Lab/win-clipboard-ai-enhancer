@@ -15,6 +15,7 @@ env/
 build/
 dist/
 *.spec
+.portable_build/
 
 # Runtime data
 data/

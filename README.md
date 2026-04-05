@@ -53,6 +53,18 @@ python src/main.py
 
 程序启动后会进入系统托盘。首次使用 AI 功能前，请在托盘菜单的 `LLM 设置...` 中填写可用的 SiliconFlow API Key。
 
+### 构建便携版
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/build_portable.ps1
+```
+
+如果希望直接输出到某个交付目录：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/build_portable.ps1 -OutputRoot D:\输出目录
+```
+
 ## 核心使用方式
 
 1. 复制一段文本或一张图片，应用会自动写入历史列表。
