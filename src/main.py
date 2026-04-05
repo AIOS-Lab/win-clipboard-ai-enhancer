@@ -3,6 +3,7 @@ import sys
 
 import keyboard
 from PyQt6.QtCore import QObject, QTimer, pyqtSignal
+from PyQt6.QtWidgets import QDialog
 from PyQt6.QtWidgets import QApplication
 
 from core.app_settings import AppSettings
@@ -26,9 +27,22 @@ def setup_global_hotkeys(panel):
     return bridge
 
 
-def open_llm_settings():
+def open_llm_settings(first_launch=False, tray=None):
     dialog = LLMSettingsDialog()
-    dialog.exec()
+    result = dialog.exec()
+    if first_launch and tray is not None:
+        settings = AppSettings.settings()
+        api_key = settings.value("llm/api_key", "", type=str).strip()
+        if result == int(QDialog.DialogCode.Accepted) and api_key:
+            tray.show_message(
+                "配置已保存",
+                "API Key 已保存，程序会继续在系统托盘后台运行。双击托盘图标即可打开主面板。",
+            )
+        else:
+            tray.show_message(
+                "程序正在后台运行",
+                "当前未完成 API Key 配置。程序仍会停留在系统托盘中，稍后可从托盘菜单再次打开 LLM 设置。",
+            )
 
 
 def open_prompt_settings(panel=None):
@@ -79,6 +93,7 @@ def migrate_llm_defaults(settings):
 
 def main():
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
     settings = AppSettings.settings()
     AppSettings.ensure_defaults()
 
@@ -122,7 +137,7 @@ def main():
     # 首次启动：如果没有配置 API Key，自动弹出设置对话框
     api_key = settings.value("llm/api_key", "", type=str)
     if not api_key:
-        QTimer.singleShot(500, open_llm_settings)
+        QTimer.singleShot(500, lambda: open_llm_settings(first_launch=True, tray=tray))
 
     # Keep references to avoid garbage-collection
     panel.hotkey_bridge = hotkey_bridge

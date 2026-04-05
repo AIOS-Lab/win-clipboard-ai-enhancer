@@ -76,3 +76,6 @@ class TrayController(QObject):
         self.auto_popup_action.blockSignals(True)
         self.auto_popup_action.setChecked(enabled)
         self.auto_popup_action.blockSignals(False)
+
+    def show_message(self, title, message, msecs=6000):
+        self.tray.showMessage(title, message, QSystemTrayIcon.MessageIcon.Information, msecs)
