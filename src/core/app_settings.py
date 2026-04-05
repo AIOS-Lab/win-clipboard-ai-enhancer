@@ -54,7 +54,7 @@ class AppSettings:
         return {
             "api_key": "",
             "api_base": "https://api.siliconflow.cn/v1/chat/completions",
-            "model": "Qwen/Qwen2.5-7B-Instruct",
+            "model": "Pro/zai-org/GLM-5",
             "temperature": 0.7,
             "timeout": 60,
             "max_tokens": 1200,

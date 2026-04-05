@@ -28,7 +28,7 @@ def setup_global_hotkeys(panel):
 
 
 def open_llm_settings(first_launch=False, tray=None):
-    dialog = LLMSettingsDialog()
+    dialog = LLMSettingsDialog(first_launch=first_launch)
     result = dialog.exec()
     if first_launch and tray is not None:
         settings = AppSettings.settings()
@@ -70,6 +70,7 @@ def migrate_llm_defaults(settings):
     """把过旧的 LLM 默认值迁移到更适合当前模型的配置。"""
     timeout = int(settings.value("llm/timeout", 0) or 0)
     max_tokens = int(settings.value("llm/max_tokens", 0) or 0)
+    model = settings.value("llm/model", "", type=str).strip()
     has_enable_thinking = settings.contains("llm/enable_thinking")
     has_max_tokens_enabled = settings.contains("llm/max_tokens_enabled")
 
@@ -79,6 +80,9 @@ def migrate_llm_defaults(settings):
         changed = True
     if max_tokens < 1200:
         settings.setValue("llm/max_tokens", 1200)
+        changed = True
+    if not model or model == "Qwen/Qwen2.5-7B-Instruct":
+        settings.setValue("llm/model", "Pro/zai-org/GLM-5")
         changed = True
     if not has_enable_thinking:
         settings.setValue("llm/enable_thinking", False)

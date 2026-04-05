@@ -1,4 +1,6 @@
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtCore import QUrl
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -20,6 +22,8 @@ from core.app_settings import AppSettings
 
 # 预置模型列表（用户也可以手动输入自定义模型）
 DEFAULT_MODELS = [
+    "Pro/zai-org/GLM-5",
+    "Pro/MiniMaxAI/MiniMax-M2.5",
     "Qwen/Qwen2.5-7B-Instruct",
     "Qwen/Qwen2.5-14B-Instruct",
     "Qwen/Qwen2.5-72B-Instruct",
@@ -29,10 +33,13 @@ DEFAULT_MODELS = [
     "meta-llama/Meta-Llama-3.1-8B-Instruct",
 ]
 
+SILICONFLOW_SIGNUP_URL = "https://cloud.siliconflow.cn/i/hXblpAps"
+
 
 class LLMSettingsDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, first_launch: bool = False):
         super().__init__(parent)
+        self.first_launch = first_launch
         self.setWindowTitle("LLM 配置")
         self.setMinimumWidth(520)
         self.setWindowFlags(
@@ -48,7 +55,20 @@ class LLMSettingsDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setSpacing(16)
 
+        if self.first_launch:
+            first_launch_label = QLabel(
+                "首次使用 AI 优化前，需要先配置一个可用的 SiliconFlow API Key。"
+                "保存后程序会继续在系统托盘后台运行。"
+            )
+            first_launch_label.setWordWrap(True)
+            first_launch_label.setStyleSheet(
+                "background: #eef6ff; color: #1f4f82; border: 1px solid #b8d7ff;"
+                " border-radius: 8px; padding: 10px 12px;"
+            )
+            layout.addWidget(first_launch_label)
+
         api_group = QGroupBox("API 配置")
+        api_group_layout = QVBoxLayout()
         api_form = QFormLayout()
 
         self.api_key_edit = QLineEdit()
@@ -60,7 +80,30 @@ class LLMSettingsDialog(QDialog):
         self.api_base_edit.setPlaceholderText("https://api.siliconflow.cn/v1/chat/completions")
         api_form.addRow("API Base：", self.api_base_edit)
 
-        api_group.setLayout(api_form)
+        api_group_layout.addLayout(api_form)
+
+        helper_layout = QHBoxLayout()
+        helper_layout.setContentsMargins(0, 0, 0, 0)
+
+        helper_label = QLabel("还没有 API Key？")
+        helper_label.setStyleSheet("color: #555;")
+        helper_layout.addWidget(helper_label)
+
+        self.signup_link = QLabel(
+            '<a href="https://cloud.siliconflow.cn/i/hXblpAps">免费获取 硅基流动 API Key</a>'
+        )
+        self.signup_link.setOpenExternalLinks(False)
+        self.signup_link.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextBrowserInteraction
+        )
+        self.signup_link.setToolTip("注册即获得 16 元活动代金券")
+        self.signup_link.setStyleSheet("QLabel { color: #1d64d7; }")
+        self.signup_link.linkActivated.connect(self._open_signup_link)
+        helper_layout.addWidget(self.signup_link)
+        helper_layout.addStretch()
+
+        api_group_layout.addLayout(helper_layout)
+        api_group.setLayout(api_group_layout)
         layout.addWidget(api_group)
 
         model_group = QGroupBox("模型配置")
@@ -119,6 +162,9 @@ class LLMSettingsDialog(QDialog):
         btn_layout.addWidget(cancel_btn)
 
         layout.addLayout(btn_layout)
+
+    def _open_signup_link(self, _link: str):
+        QDesktopServices.openUrl(QUrl(SILICONFLOW_SIGNUP_URL))
 
     def _load_settings(self):
         config = AppSettings.load_llm_settings()
